@@ -77,3 +77,65 @@ To create a new branch and make changes to the main config, use the the followin
 $ git checkout -b add-load-balancer
 ```
 
+## Language
+
+Terraform has its own naming convention to describe the different components or actors to be used:
+* Configuration: a Terraform _configuration_ is the file (or set of files) that describes the infrastructure. Each configuration must be in its own directory
+* Provider: a Terraform _provider_ is **_- TO BE COMPLETED -_**
+
+## Configuration
+
+An example of a simple configuration file is shown below:
+
+```
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
+provider "aws" {
+  profile = "default"
+  region  = "us-west-2"
+}
+
+resource "aws_instance" "app_server" {
+  ami           = "ami-830c94e3"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "ExampleAppServerInstance"
+  }
+}
+```
+
+Each code block has its own importance:
+
+### Terraform Block
+
+Summary of the terraform settings, including the providers to be used to provision the infrastructure.
+
+`source` defines an optional hostname, a namespace, and the provider type. Terraform installs providers from the Terraform Registry by default. In this example, `hashicorp/aws` is a short version for `registry.terraform.io/hashicorp/aws`.
+
+A version constraint for each provider can be defined in the `required_providers` block. The version attribute is optional, but it is recommended to constrain the provider version so that Terraform does not install a version of the provider that does not work with your configuration. If you do not specify a provider version, Terraform will automatically download the most recent version during initialization.
+
+### Providers
+
+The `provider` block configures the specified provider, in this case `aws`. A provider is a plugin that Terraform uses to create and manage your resources.
+
+The `profile` attribute in the `aws` provider block refers Terraform to the AWS credentials stored in your AWS config file, which you created when you configured the AWS CLI. **Reminder:** Never hard-code credentials or other secrets in your configuration files!
+
+You can use multiple provider blocks in your Terraform configuration to manage resources from different providers. You can even use different providers together.
+
+### Resources
+
+The `resource` blocks define components of your infrastructure. A resource might be a physical or virtual component such as an EC2 instance, or it can be a logical resource such as a Heroku application.
+
+Resource blocks have two strings before the block: the resource type and the resource name. In this example, the resource type is `aws_instance` and the name is `app_server`. The prefix of the type maps to the name of the provider. In the example configuration, Terraform manages the `aws_instance` resource with the `aws` provider. Together, the resource type and resource name form a unique ID for the resource. For example, the ID for your EC2 instance is `aws_instance.app_server`.
+
+Resource blocks contain arguments which you use to configure the resource. Arguments can include things like machine sizes, disk image names, or VPC IDs. Check the providers reference dosc to check the required and optional arguments for each resource. For this EC2 instance, the example configuration sets the AMI ID to an Ubuntu image, and the instance type to t2.micro, which qualifies for AWS' free tier. It also sets a tag to give the instance a name.

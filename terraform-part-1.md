@@ -261,6 +261,89 @@ drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
 -rwxr-xr-x  1 plgingembre  staff   194M May 10 10:44 terraform-provider-aws_v3.39.0_x5
 ```
 
+#### AWS credentials
+
+In case you're trying to create a configuration in AWS, terraform will download and install the aws terraform provider into the local project directory. One issue that you can encounter is about using valid aws credentials, usable by terraform. 
+
+If you're using SSO with an external IDP, you may run into the message below when running `terraform plan` command:
+
+```
+$ terraform plan
+Acquiring state lock. This may take a few moments...
+╷
+│ Error: error configuring Terraform AWS Provider: no valid credential sources for Terraform AWS Provider found.
+│
+│ Please see https://registry.terraform.io/providers/hashicorp/aws
+│ for more information about providing credentials.
+│
+│ Error: NoCredentialProviders: no valid providers in chain. Deprecated.
+│ 	For verbose messaging see aws.Config.CredentialsChainVerboseErrors
+│
+│
+│   with provider["registry.terraform.io/hashicorp/aws"],
+│   on main.tf line 12, in provider "aws":
+│   12: provider "aws" {
+│
+```
+
+#### Work around Github filesize limitation
+
+Another issue that you can have when syncing your code and configs from your local repo to the remote one on Github is the max filesize limit (100MB).
+
+The source code of your applications or terraform configurations is just a few kilobytes (KB), so there should not be any issue here. When using a provider, remember that terraform downloads and installs the provider file in the project directory under the `.terraform` directory.
+
+Once added to the list of files/directories to sync between repos with git, we end up with an error from github refusing to sync files above 100MB in size. Although frustrating at first, it makes sense for Github to limit the size of each repo and not store large files from each project you create, especially in this case, the provider is a static file that will never change over time (it's a dead file for Github, but using plenty of disk space!).
+
+One way to work around this constraint is to ignore these directories that contain large files.
+
+Create a gitignore file:
+
+```
+$ touch .gitignore
+```
+
+Edit this file in your preferred text editor and add the following content:
+
+```
+# Directories
+.terraform/
+
+# Compiled files
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+```
+
+You can add more than these files, like `*.pem`, `*.log`, or other `.DS_Store` if you're running git on your Mac.
+
+**_It is important to add this gitignore file at the very beginning of your project to avoid any issue later on when trying to sync local repos with the remote on Github_**
+
+Once you have this `.gitignore` file in your local repo, you can stage your files, and push them to the remote repo.
+
+An example of a terraform project with a `.gitignore` file, initialized:
+
+```
+$ ll
+total 16
+drwxr-xr-x@ 5 plgingembre  staff   160B May 12 07:55 .
+drwxr-xr-x@ 8 plgingembre  staff   256B May 12 07:55 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 12 07:47 .terraform
+-rw-r--r--  1 plgingembre  staff   1.1K May 12 07:47 .terraform.lock.hcl
+-rw-r--r--  1 plgingembre  staff   375B May 12 07:38 main.tf
+$
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	learn-terraform-aws-instance/.terraform.lock.hcl
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+
+Only the file `.terraform.lock.hcl` is staged, but not the `.terraform` directory. You can now commit this chnage with `git commit -m "..."` and push it to the remote repo in Github with a `git push origin main`.
+
 ### Check configuration
 
 There are two useful commands to validate your configuration with terraform: `terraform fmt` and `terraform validate`.

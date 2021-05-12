@@ -109,7 +109,7 @@ resource "aws_instance" "app_server" {
   instance_type = "t2.micro"
 
   tags = {
-    Name = "ExampleAppServerInstance"
+    Name = "ExampleAppServerInstanceBuiltWithTerraform"
   }
 }
 ```
@@ -138,4 +138,140 @@ The `resource` blocks define components of your infrastructure. A resource might
 
 Resource blocks have two strings before the block: the resource type and the resource name. In this example, the resource type is `aws_instance` and the name is `app_server`. The prefix of the type maps to the name of the provider. In the example configuration, Terraform manages the `aws_instance` resource with the `aws` provider. Together, the resource type and resource name form a unique ID for the resource. For example, the ID for your EC2 instance is `aws_instance.app_server`.
 
-Resource blocks contain arguments which you use to configure the resource. Arguments can include things like machine sizes, disk image names, or VPC IDs. Check the providers reference dosc to check the required and optional arguments for each resource. For this EC2 instance, the example configuration sets the AMI ID to an Ubuntu image, and the instance type to t2.micro, which qualifies for AWS' free tier. It also sets a tag to give the instance a name.
+Resource blocks contain arguments which you use to configure the resource. Arguments can include things like machine sizes, disk image names, or VPC IDs. Check the providers reference docs to check the required and optional arguments for each resource. For this EC2 instance, the example configuration sets the AMI ID to an Ubuntu image, and the instance type to t2.micro, which qualifies for AWS' free tier. It also sets a tag to give the instance a name.
+
+## Build Infrastucture
+
+### Initialization
+
+To get started with your terraform project, you need to initialize your project directory with the `terraform init` command. Initializing the directory downloads and installs the provider specified in the configuration.
+
+```
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding hashicorp/aws versions matching "~> 3.27"...
+- Installing hashicorp/aws v3.39.0...
+- Installed hashicorp/aws v3.39.0 (signed by HashiCorp)
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+```
+
+Now, if you explore a little more what happens in this directory, you can see a new file `.terraform.lock.hcl` and a new directory `.terraform`.
+
+```
+% ll
+total 16
+drwxr-xr-x@ 5 plgingembre  staff   160B May 10 10:44 .
+drwxr-xr-x@ 7 plgingembre  staff   224B May 10 10:24 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:44 .terraform
+-rw-r--r--  1 plgingembre  staff   1.1K May 10 10:44 .terraform.lock.hcl
+-rw-r--r--@ 1 plgingembre  staff   393B May 10 10:24 main.tf
+```
+
+The lock file contains the version of the provider versions used in this configuration, so that there's no doubt about which version will be executed when building the infrastructure. It's also easier to update the providers later on.
+
+Content of the `.terraform.lock.hcl` lock file:
+
+```
+% cat .terraform.lock.hcl
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/aws" {
+  version     = "3.39.0"
+  constraints = "~> 3.27"
+  hashes = [
+    "h1:fjlp3Pd3QsTLghNm7TUh/KnEMM2D3tLb7jsDLs8oWUE=",
+    "zh:2014b397dd93fa55f2f2d1338c19e5b2b77b025a76a6b1fceea0b8696e984b9c",
+    "zh:23d59c68ab50148a0f5c911a801734e9934a1fccd41118a8efb5194135cbd360",
+    "zh:412eab41d4934ca9c47083faa128e4cd585c3bb44ad718e40d67091aebc02f4e",
+    "zh:4b75e0a259b56d97e66b7d69f3f25bd4cc7be2440c0fe35529f46de7d40a49d3",
+    "zh:694a32519dcca5bd8605d06481d16883d55160d97c1f4039deb13c6ca8de8427",
+    "zh:6a0bcef43c2d9a97aeaaac3c5d1d6728dc2464a51a014f118c691c79029d0903",
+    "zh:6d78fc7c663247ca2a80f276008dcdafece4cac75e2639bbce188c08b796040a",
+    "zh:78f846a505d7b64b67feed1527d4d2b40130dadaf8e3112113685e148f49b156",
+    "zh:881bc969432d3ef6ec70f5a762c3415e037904338579b0a360c6818b74d26e59",
+    "zh:96c1ca80c1d693a3eef80489adb45c076ee8e6878e461d6c29b05388d4b95f48",
+    "zh:9be5fa342272586fc6e319e20f21c0c5c801b05dcf7d59e473ad0882c9ecfa70",
+  ]
+}
+```
+
+The `.terraform` directory is the place where providers will be downloaded and installed for this specific project (the current directory).
+
+Content of the `.terraform` directory and subdirectories:
+
+```
+% ls -lRah .terraform
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 5 plgingembre  staff   160B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 providers
+
+.terraform/providers:
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 registry.terraform.io
+
+.terraform/providers/registry.terraform.io:
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 hashicorp
+
+.terraform/providers/registry.terraform.io/hashicorp:
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 aws
+
+.terraform/providers/registry.terraform.io/hashicorp/aws:
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 3.39.0
+
+.terraform/providers/registry.terraform.io/hashicorp/aws/3.39.0:
+total 0
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 darwin_amd64
+
+.terraform/providers/registry.terraform.io/hashicorp/aws/3.39.0/darwin_amd64:
+total 416768
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
+drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
+-rwxr-xr-x  1 plgingembre  staff   194M May 10 10:44 terraform-provider-aws_v3.39.0_x5
+```
+
+### Check configuration
+
+There are two useful commands to validate your configuration with terraform: `terraform fmt` and `terraform validate`.
+
+`terraform fmt` makes sure the format of your configuration file is consistent and updates the config file in case it is not. 
+
+```
+% terraform fmt
+```
+
+`terraform validate` makes sure the configuration is valid from an HCL syntax perspective.
+
+### Apply configuration
+

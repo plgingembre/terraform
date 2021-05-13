@@ -1,4 +1,4 @@
-# Terraform
+# Terraform Get Started
 
 ## Introduction
 
@@ -661,4 +661,290 @@ terraform {
 ```
 
 ## Change Infrastructure
+
+Changing the infrastructure with Terraform is as simple as changing your `main.tf` configuration file and applying the new configuration.
+
+One of the prerequisites is to make sure the computer that applies the new configuration has access to the Terraform state files used to keep state of the current infrastructure. This is particularly important when you're with multiple machines or within a team. At this point, using shared secure remote backends or Terraform Enterprise/Cloud can make a lot of sense.
+
+I am using the same example of the EC2 instance in AWS that I am going to modify from `ami-830c94e3` (ubuntu/images/hvm/ubuntu-precise-12.04-amd64-server-20170502) to `ami-08d70e59c07c61a3a` (ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20200814).
+
+The modification in the `main.tf` file is done in the `resource` block:
+```
+resource "aws_instance" "app_server" {
+  ami           = "ami-08d70e59c07c61a3a" ### Modification of the public AMI
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "ExampleAppServerInstance"
+  }
+}
+```
+
+After saving `main.tf`, you can safely apply this new configuration with a `terraform apply`:
+
+```
+$ terraform apply
+Acquiring state lock. This may take a few moments...
+aws_instance.app_server: Refreshing state... [id=i-012082c54447ff572]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server must be replaced
+-/+ resource "aws_instance" "app_server" {
+      ~ ami                                  = "ami-830c94e3" -> "ami-08d70e59c07c61a3a" # forces replacement
+      ~ arn                                  = "arn:aws:ec2:us-west-2:931505774614:instance/i-012082c54447ff572" -> (known after apply)
+      ~ associate_public_ip_address          = true -> (known after apply)
+      ~ availability_zone                    = "us-west-2b" -> (known after apply)
+      ~ cpu_core_count                       = 1 -> (known after apply)
+      ~ cpu_threads_per_core                 = 1 -> (known after apply)
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - hibernation                          = false -> null
+      + host_id                              = (known after apply)
+      ~ id                                   = "i-012082c54447ff572" -> (known after apply)
+      ~ instance_initiated_shutdown_behavior = "stop" -> (known after apply)
+      ~ instance_state                       = "running" -> (known after apply)
+      ~ ipv6_address_count                   = 0 -> (known after apply)
+      ~ ipv6_addresses                       = [] -> (known after apply)
+      + key_name                             = (known after apply)
+      - monitoring                           = false -> null
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      ~ primary_network_interface_id         = "eni-0af5364558e5feb52" -> (known after apply)
+      ~ private_dns                          = "ip-172-31-44-230.us-west-2.compute.internal" -> (known after apply)
+      ~ private_ip                           = "172.31.44.230" -> (known after apply)
+      ~ public_dns                           = "ec2-54-148-10-19.us-west-2.compute.amazonaws.com" -> (known after apply)
+      ~ public_ip                            = "54.148.10.19" -> (known after apply)
+      ~ secondary_private_ips                = [] -> (known after apply)
+      ~ security_groups                      = [
+          - "default",
+        ] -> (known after apply)
+      ~ subnet_id                            = "subnet-0ec2de6c" -> (known after apply)
+        tags                                 = {
+            "Name" = "ExampleAppServerInstance"
+        }
+      ~ tenancy                              = "default" -> (known after apply)
+      ~ vpc_security_group_ids               = [
+          - "sg-1d658278",
+        ] -> (known after apply)
+        # (4 unchanged attributes hidden)
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      ~ enclave_options {
+          ~ enabled = false -> (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      ~ metadata_options {
+          ~ http_endpoint               = "enabled" -> (known after apply)
+          ~ http_put_response_hop_limit = 1 -> (known after apply)
+          ~ http_tokens                 = "optional" -> (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      ~ root_block_device {
+          ~ delete_on_termination = true -> (known after apply)
+          ~ device_name           = "/dev/sda1" -> (known after apply)
+          ~ encrypted             = false -> (known after apply)
+          ~ iops                  = 0 -> (known after apply)
+          + kms_key_id            = (known after apply)
+          ~ tags                  = {} -> (known after apply)
+          ~ throughput            = 0 -> (known after apply)
+          ~ volume_id             = "vol-07ec0430c027a9bab" -> (known after apply)
+          ~ volume_size           = 8 -> (known after apply)
+          ~ volume_type           = "standard" -> (known after apply)
+        }
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.app_server: Destroying... [id=i-012082c54447ff572]
+aws_instance.app_server: Still destroying... [id=i-012082c54447ff572, 10s elapsed]
+aws_instance.app_server: Still destroying... [id=i-012082c54447ff572, 20s elapsed]
+aws_instance.app_server: Destruction complete after 21s
+aws_instance.app_server: Creating...
+aws_instance.app_server: Still creating... [10s elapsed]
+aws_instance.app_server: Still creating... [20s elapsed]
+aws_instance.app_server: Still creating... [30s elapsed]
+aws_instance.app_server: Creation complete after 34s [id=i-093373c8461b7955f]
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+```
+
+What is interesting to note in this output is the prefixes before each line: `-/+/~`.
+- `-` means something is destroyed
+- `+` means something is created
+- `~` means something is updated instead of being destroyed/recreated
+
+In this case, because it is an AMI change, the previous EC2 instance is destroyed and a new one is created.
+
+## Destroy Infrastructure
+
+Delete infrastructure with Terraform is as simple as one command: `terraform destroy`. This command is the reverse of `terraform apply` and terminates all the resources in your Terraform state. As any other stateful software, it only destroys resources created through Teerraform.
+
+An example using the EC2 instance:
+
+```
+terraform destroy
+Acquiring state lock. This may take a few moments...
+aws_instance.app_server: Refreshing state... [id=i-093373c8461b7955f]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server will be destroyed
+  - resource "aws_instance" "app_server" {
+      - ami                                  = "ami-08d70e59c07c61a3a" -> null
+      - arn                                  = "arn:aws:ec2:us-west-2:931505774614:instance/i-093373c8461b7955f" -> null
+      - associate_public_ip_address          = true -> null
+      - availability_zone                    = "us-west-2b" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-093373c8461b7955f" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - monitoring                           = false -> null
+      - primary_network_interface_id         = "eni-0f656db1a752514e1" -> null
+      - private_dns                          = "ip-172-31-45-74.us-west-2.compute.internal" -> null
+      - private_ip                           = "172.31.45.74" -> null
+      - public_dns                           = "ec2-52-39-170-178.us-west-2.compute.amazonaws.com" -> null
+      - public_ip                            = "52.39.170.178" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [
+          - "default",
+        ] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-0ec2de6c" -> null
+      - tags                                 = {
+          - "Name" = "ExampleAppServerInstance"
+        } -> null
+      - tags_all                             = {
+          - "Name" = "ExampleAppServerInstance"
+        } -> null
+      - tenancy                              = "default" -> null
+      - vpc_security_group_ids               = [
+          - "sg-1d658278",
+        ] -> null
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_put_response_hop_limit = 1 -> null
+          - http_tokens                 = "optional" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/sda1" -> null
+          - encrypted             = false -> null
+          - iops                  = 100 -> null
+          - tags                  = {
+              - "Name" = "ExampleAppServerInstance"
+            } -> null
+          - throughput            = 0 -> null
+          - volume_id             = "vol-0e882ef55604ca9f2" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp2" -> null
+        }
+    }
+
+Plan: 0 to add, 0 to change, 1 to destroy.
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+aws_instance.app_server: Destroying... [id=i-093373c8461b7955f]
+aws_instance.app_server: Still destroying... [id=i-093373c8461b7955f, 10s elapsed]
+aws_instance.app_server: Still destroying... [id=i-093373c8461b7955f, 20s elapsed]
+aws_instance.app_server: Still destroying... [id=i-093373c8461b7955f, 30s elapsed]
+aws_instance.app_server: Still destroying... [id=i-093373c8461b7955f, 40s elapsed]
+aws_instance.app_server: Destruction complete after 41s
+
+Destroy complete! Resources: 1 destroyed.
+```
+
+## Using Input Variables
+
+With Terraform, you have the ability to define variables and make your configuration more dynamic and flexible. Once defined, those variables can be used in the configuration.
+
+Variables are created and stored in a separate file, not in the `main.tf` config file.
+
+An example with a file called `varibales.tf`, but any `.tf` filename will work, see below:
+
+```
+variable "instance_name" {
+  description = "Value of the Name tag for the EC2 instance"
+  type        = string
+  default     = "AppServerInstanceDefaultName"
+}
+```
+
+In the `main.tf` configuration file, you can modify the `resource` block to use this variable instead of the hard-coded name:
+
+```
+resource "aws_instance" "app_server" {
+  ami           = "ami-08d70e59c07c61a3a"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = var.instance_name ### Pointing to the newly created variable
+  }
+}
+```
 

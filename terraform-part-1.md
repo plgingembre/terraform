@@ -142,7 +142,7 @@ Resource blocks contain arguments which you use to configure the resource. Argum
 
 ## Build Infrastucture
 
-### Initialization
+### Initialize the configuration
 
 To get started with your terraform project, you need to initialize your project directory with the `terraform init` command. Initializing the directory downloads and installs the provider specified in the configuration.
 
@@ -261,7 +261,7 @@ drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 ..
 -rwxr-xr-x  1 plgingembre  staff   194M May 10 10:44 terraform-provider-aws_v3.39.0_x5
 ```
 
-#### AWS credentials
+#### AWS credentials with SSO
 
 In case you're trying to create a configuration in AWS, terraform will download and install the aws terraform provider into the local project directory. One issue that you can encounter is about using valid aws credentials, usable by terraform. 
 
@@ -286,7 +286,139 @@ Acquiring state lock. This may take a few moments...
 │
 ```
 
-#### Work around Github filesize limitation
+If you're using an IAM user, not a problem, run the `aws configure` command and provide your access key and secret and that should be it. This will become your `default` profile in your `~/.aws/config` and `~/.aws/credentials` config files. Nothing to do in the `main.tf` config file, it uses your default AWS profile vy default.
+
+```
+provider "aws" {
+  profile = "default"
+  region  = "us-west-2"
+}
+```
+
+If you're using SSO credentials, there are a few ways to handle this with different tools (**_INSERT LINK TO AWS-OKTA HERE_**). I am going to use aws-okta here, but other tools will probably be similar.
+
+In this case, there is no need to modify your main configuration file `main.tf` and specify which account or profile to use, the `default` profile will be just fine as we're authenticating the user before actually calling terraform.
+
+Once aws-okta is configured correctly and you have verified that basic `aws` cli commands work with it (`aws-okta exec <profile_name> -- aws <command>`), you should be able to run terraform commands without any issue.
+
+An example with `terraform plan`:
+
+```
+$ aws-okta exec okta-demosales -- terraform plan
+Acquiring state lock. This may take a few moments...
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server will be created
+  + resource "aws_instance" "app_server" {
+      + ami                                  = "ami-830c94e3"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = (known after apply)
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "ExampleAppServerInstance"
+        }
+      + tags_all                             = {
+          + "Name" = "ExampleAppServerInstance"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
+```
+
+As a side note, other options to explore for mixing Okta, AWS and terraform. I am putting a few links down here:
+
+https://github.com/oktadeveloper/okta-aws-cli-assume-role
+
+https://github.com/segmentio/aws-okta
+
+https://bitbucket.org/atlassian/cloudtoken/src/master/
+
+https://github.com/Nike-Inc/gimme-aws-creds
+
+
+#### Github large files limitation
 
 Another issue that you can have when syncing your code and configs from your local repo to the remote one on Github is the max filesize limit (100MB).
 
@@ -344,7 +476,7 @@ nothing added to commit but untracked files present (use "git add" to track)
 
 Only the file `.terraform.lock.hcl` is staged, but not the `.terraform` directory. You can now commit this chnage with `git commit -m "..."` and push it to the remote repo in Github with a `git push origin main`.
 
-### Check configuration
+### Check the configuration
 
 There are two useful commands to validate your configuration with terraform: `terraform fmt` and `terraform validate`.
 
@@ -356,5 +488,174 @@ There are two useful commands to validate your configuration with terraform: `te
 
 `terraform validate` makes sure the configuration is valid from an HCL syntax perspective.
 
-### Apply configuration
+### Apply the configuration
 
+At this point, the configuration was verified and you simulated the plan that terraform will use when applying the configuration, so you are good to go and apply the configuration, in other words, build the infrastructure you described.
+
+In the example below, an EC2 instance running Ubuntu is created:
+
+```
+aws-okta exec okta-demosales -- terraform apply
+Acquiring state lock. This may take a few moments...
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server will be created
+  + resource "aws_instance" "app_server" {
+      + ami                                  = "ami-830c94e3"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+
+##...
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.app_server: Creating...
+aws_instance.app_server: Still creating... [10s elapsed]
+aws_instance.app_server: Still creating... [20s elapsed]
+aws_instance.app_server: Still creating... [30s elapsed]
+aws_instance.app_server: Creation complete after 35s [id=i-012082c54447ff572]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+```
+
+A few things to note in this output:
+- The _execution plan_ describes the actions terraform will take to build or change the infrastructure to match your configuration.
+- The output format looks like what you get with a diff in Git, the `+` means a resource is created.
+- `(known after apply)` is self-explanatory, you will only know the value for this key when the plan is executed (when the resource is actually created).
+
+After a successful execution of the plan, you can now open your AWS console and check if the instance with the id `i-012082c54447ff572` (or name `ExampleAppServerInstance`) was created.
+
+### Inspect state
+
+First, a quick way to find out which resource is tracked by Terraform is by using the `terraform state list` command. This command lists all resources that Terraform has created.
+
+```
+$ terraform state list
+aws_instance.app_server
+```
+
+Terraform keeps track or state of the resources created through the configuration and store data into a file called `terraform.tfstate`. In this file, you can find resources IDs and other properties, that will be used by Terraform to update or destroy those resources.
+
+This file is the only way for Terraform to keep track of managed resources. Information in this file can be sensitive or confidential and therefore should only be securely stored and shared only with trustful people within your team.
+
+An example with the EC2 instance you have created earlier:
+```
+$ terraform show
+# aws_instance.app_server:
+resource "aws_instance" "app_server" {
+    ami                                  = "ami-830c94e3"
+    arn                                  = "arn:aws:ec2:us-west-2:931505774614:instance/i-012082c54447ff572"
+    associate_public_ip_address          = true
+    availability_zone                    = "us-west-2b"
+    cpu_core_count                       = 1
+    cpu_threads_per_core                 = 1
+    disable_api_termination              = false
+    ebs_optimized                        = false
+    get_password_data                    = false
+    hibernation                          = false
+    id                                   = "i-012082c54447ff572"
+    instance_initiated_shutdown_behavior = "stop"
+    instance_state                       = "running"
+    instance_type                        = "t2.micro"
+    ipv6_address_count                   = 0
+    ipv6_addresses                       = []
+    monitoring                           = false
+    primary_network_interface_id         = "eni-0af5364558e5feb52"
+    private_dns                          = "ip-172-31-44-230.us-west-2.compute.internal"
+    private_ip                           = "172.31.44.230"
+    public_dns                           = "ec2-54-148-10-19.us-west-2.compute.amazonaws.com"
+    public_ip                            = "54.148.10.19"
+    secondary_private_ips                = []
+    security_groups                      = [
+        "default",
+    ]
+    source_dest_check                    = true
+    subnet_id                            = "subnet-0ec2de6c"
+    tags                                 = {
+        "Name" = "ExampleAppServerInstance"
+    }
+    tags_all                             = {
+        "Name" = "ExampleAppServerInstance"
+    }
+    tenancy                              = "default"
+    vpc_security_group_ids               = [
+        "sg-1d658278",
+    ]
+
+    credit_specification {
+        cpu_credits = "standard"
+    }
+
+    enclave_options {
+        enabled = false
+    }
+
+    metadata_options {
+        http_endpoint               = "enabled"
+        http_put_response_hop_limit = 1
+        http_tokens                 = "optional"
+    }
+
+    root_block_device {
+        delete_on_termination = true
+        device_name           = "/dev/sda1"
+        encrypted             = false
+        iops                  = 0
+        tags                  = {}
+        throughput            = 0
+        volume_id             = "vol-07ec0430c027a9bab"
+        volume_size           = 8
+        volume_type           = "standard"
+    }
+}
+```
+
+By default the `terraform.tfstate` file is created in the project directory. You can decide to move this file in a different directory on your local computer by defining a `backend` block in your configuration file with the `local` keyword.
+
+An example of a local backend:
+```
+terraform {
+  backend "local" {
+    path = "relative/path/to/terraform.tfstate"
+  }
+}
+```
+
+There are options to remotely store these files by defining a `backend` block in your configuration file with the `remote` keyword. Several options are available for a remote backend, like artifactory, consul, etcd, s3, kubernetes, and many others (see here: https://www.terraform.io/docs/language/settings/backends/index.html).
+
+An example of a remote backend (Terraform Cloud workspace):
+```
+terraform {
+  backend "remote" {
+    hostname = "app.terraform.io"
+    organization = "company"
+
+    workspaces {
+      name = "my-app-prod"
+    }
+  }
+}
+```
+
+Another example of a remote backend (Artifactory):
+```
+terraform {
+  backend "artifactory" {
+    username = "SheldonCooper"
+    password = "AmyFarrahFowler"
+    url      = "https://custom.artifactoryonline.com/artifactory"
+    repo     = "foo"
+    subpath  = "terraform-bar"
+  }
+}
+```

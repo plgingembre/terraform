@@ -923,9 +923,9 @@ Destroy complete! Resources: 1 destroyed.
 
 With Terraform, you have the ability to define variables and make your configuration more dynamic and flexible. Once defined, those variables can be used in the configuration.
 
-Variables are created and stored in a separate file, not in the `main.tf` config file.
+Variables are created and stored in a separate file from the `main.tf` config file.
 
-An example with a file called `varibales.tf`, but any `.tf` filename will work, see below:
+An example with a file named `varibales.tf`, but any `.tf` filename will work, see below:
 
 ```
 variable "instance_name" {
@@ -947,4 +947,179 @@ resource "aws_instance" "app_server" {
   }
 }
 ```
+Using `terraform apply` without specifying the variable will end up with the `default` value for the varibale, in this case `AppServerInstanceDefaultName`. To specify the value for a given variable, you need to use `-var 'variable_name=value'` with the `terraform apply` command.
 
+```
+$ terraform apply -var 'instance_name=BlahServerName'
+aws_instance.app_server: Refreshing state... [id=i-04c96ab1acbb4317d]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server will be updated in-place
+  ~ resource "aws_instance" "app_server" {
+        id                                   = "i-04c96ab1acbb4317d"
+      ~ tags                                 = {
+          ~ "Name" = "AppServerInstanceDefaultName" -> "BlahServerName"
+        }
+      ~ tags_all                             = {
+          ~ "Name" = "AppServerInstanceDefaultName" -> "BlahServerName"
+        }
+        # (27 unchanged attributes hidden)
+
+
+
+
+        # (4 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.app_server: Modifying... [id=i-04c96ab1acbb4317d]
+aws_instance.app_server: Modifications complete after 2s [id=i-04c96ab1acbb4317d]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+```
+
+**_IMPORTANT_** - The value set for this variable is not set forever in your configuration file, so you need to enter it each time you execute a command. Terraform supports many ways to use and set variables, see here: https://learn.hashicorp.com/tutorials/terraform/variables?in=terraform/configuration-language.
+
+## Query Data with Outputs
+
+With Terraform you can query your existing resources and define a list desired `outputs`. To do so, you need to define in your project directory a `.tf` file that includes `output` blocks.
+
+An example below:
+
+```
+output "instance_id" {
+  description = "ID of the EC2 instance"
+  value       = aws_instance.app_server.id
+}
+
+output "instance_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.app_server.public_ip
+}
+```
+
+Running `terraform apply` will inspect the local directory for `.tf` files and will render outputs if there are `output` resources defined in one of these configuration files. `terraform apply` is mandatory for Terraform to acknowledge that outputs are requested after executing wrking on the infrastructure.
+
+```
+$ terraform apply -var 'instance_name=BlahServerName'
+aws_instance.app_server: Refreshing state... [id=i-04c96ab1acbb4317d]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+
+Terraform will perform the following actions:
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + instance_id        = "i-04c96ab1acbb4317d"
+  + instance_public_ip = "54.184.118.153"
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+instance_id = "i-04c96ab1acbb4317d"
+instance_public_ip = "54.184.118.153"
+```
+
+You can see that the `Outputs` are displayed at the end of the output of the `terraform apply` command. A better way to display the outputs of a given Terraform project is to use the `terraform output` command.
+
+```
+$ terraform output
+instance_id = "i-04c96ab1acbb4317d"
+instance_public_ip = "54.184.118.153"
+```
+
+## Store State on Remote Backends
+
+As mentioned earlier, state data can contain sensitive or confidential information and should not be stored anywhere or accessible by everybody in a production environment. Ideally, you should keep your state secure and encrypted in a place controlled by user access and audit logs, etc.
+
+Remote backends are available in Terraform to store your state data in a secure remote location that you can share with teammates that works on the same infrastructure.
+
+One of the options is to use Terraform Cloud to store state date remotely, but also variables, API tokens or access keys.
+
+
+
+```
+$ terraform login
+Terraform will request an API token for app.terraform.io using your browser.
+
+If login is successful, Terraform will store the token in plain text in
+the following file for use by subsequent commands:
+    /Users/plgingembre/.terraform.d/credentials.tfrc.json
+
+Do you want to proceed?
+  Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+
+---------------------------------------------------------------------------------
+
+Terraform must now open a web browser to the tokens page for app.terraform.io.
+
+If a browser does not open this automatically, open the following URL to proceed:
+    https://app.terraform.io/app/settings/tokens?source=terraform-login
+
+
+---------------------------------------------------------------------------------
+
+Generate a token using your browser, and copy-paste it into this prompt.
+
+Terraform will store the token in plain text in the following file
+for use by subsequent commands:
+    /Users/plgingembre/.terraform.d/credentials.tfrc.json
+
+Token for app.terraform.io:
+  Enter a value:
+
+
+Retrieved token for user plgingembre
+
+
+---------------------------------------------------------------------------------
+
+                                          -
+                                          -----                           -
+                                          ---------                      --
+                                          ---------  -                -----
+                                           ---------  ------        -------
+                                             -------  ---------  ----------
+                                                ----  ---------- ----------
+                                                  --  ---------- ----------
+   Welcome to Terraform Cloud!                     -  ---------- -------
+                                                      ---  ----- ---
+   Documentation: terraform.io/docs/cloud             --------   -
+                                                      ----------
+                                                      ----------
+                                                       ---------
+                                                           -----
+                                                               -
+
+
+   New to TFC? Follow these steps to instantly apply an example configuration:
+
+   $ git clone https://github.com/hashicorp/tfc-getting-started.git
+   $ cd tfc-getting-started
+   $ scripts/setup.sh
+
+
+```

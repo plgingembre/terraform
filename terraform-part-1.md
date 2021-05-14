@@ -413,7 +413,7 @@ Note: You didn't use the -out option to save this plan, so Terraform can't guara
 As a side note, other options to explore for mixing Okta, AWS and terraform. I am putting a few links down here: 
 https://github.com/oktadeveloper/okta-aws-cli-assume-role <br>
 https://github.com/segmentio/aws-okta <br>
-https://bitbucket.org/atlassian/cloudtoken/src/master/ <br>
+https://bitbucket.org/atlassian/cloudtoken/src/master <br>
 https://github.com/Nike-Inc/gimme-aws-creds <br>
 
 
@@ -1342,6 +1342,6 @@ We can now destroy this instance to save some $$ with our AWS account. Just run 
 
 This concludes this first part on Terraform, extremely inspired by the official Terraform documentation, that is really well written in my opinion (very pragmatic approach of a doc). In future posts, I will focus more on specific examples to build an infrastructure for a given use case (Kubernetes, serverless functions, etc.).
 
-**_Sources:_**
+**_Sources:_** <br>
 https://www.terraform.io/intro/index.html <br>
 https://learn.hashicorp.com/tutorials/terraform/aws-remote?in=terraform/aws-get-started <br>

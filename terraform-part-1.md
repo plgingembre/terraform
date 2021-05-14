@@ -1056,7 +1056,38 @@ Remote backends are available in Terraform to store your state data in a secure 
 
 One of the options is to use Terraform Cloud to store state date remotely, but also variables, API tokens or access keys.
 
+First of all, you need to login to Terraform Cloud using your API key. Creating an account is free, and then you can create an organization.
 
+A few terms to know to get started with Terraform Cloud
+- An `organization` is like a tenant, a private space for teams to share projects and collaborate on infrastructure.
+- A `workspace` is like a namespace, a directory or space where you can store your configuration, secrets, variables, state and logs. A `workspace` can be created from the terraform cli.
+
+I will create an organization named `plgingembre` and will leave it with no workspace for now.
+
+I also need to modify the `main.tf` configuration to specify this information as a remote `backend` in the `terraform` block.
+
+```
+terraform {
+  backend "remote" {              ##
+    organization = "plgingembre"  ##
+                                  ##
+    workspaces {                  ## New section for Terraform Cloud remote backend
+      name = "tfc-aws-instance"   ##
+    }                             ##
+  }                               ##
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+```
+
+After modifying the `main.tf` configuration, it's time to login to my Terraform Cloud account from the terminal, so that we can store variables or state in a workspace after the plan execution.
 
 ```
 $ terraform login
@@ -1123,3 +1154,190 @@ Retrieved token for user plgingembre
 
 
 ```
+
+We can initialize the configuration with the `terraform init` command. That will also initialize the backend and propose to copy existing local state to the remote backend. Not mandatory, but can be helpful to "migrate" en existing local project to Terraform Cloud.
+
+```
+$ terraform init
+
+Initializing the backend...
+Acquiring state lock. This may take a few moments...
+Do you want to copy existing state to the new backend?
+  Pre-existing state was found while migrating the previous "local" backend to the
+  newly configured "remote" backend. No existing state was found in the newly
+  configured "remote" backend. Do you want to copy this state to the new "remote"
+  backend? Enter "yes" to copy and "no" to start with an empty state.
+
+  Enter a value: yes
+
+
+Successfully configured the backend "remote"! Terraform will automatically
+use this backend unless the backend configuration changes.
+
+Initializing provider plugins...
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v3.39.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+```
+
+When using Terraform Cloud as a remote backend with the CLI-driven workflow, we can choose to have Terraform run remotely, or on our local machine. When using local execution, Terraform Cloud will execute Terraform on our local machine and remotely store our state file in Terraform Cloud. Here, we will use the remote execution mode.
+
+After migrating the state file to the remote backend in a Terraform Cloud backend, we can safely delete the local state.
+
+```
+$ rm terraform.state.*
+```
+
+Our workspace needs to be configured with our AWS credentials to authenticate the AWS provider. This done by using two `Environment Variables` named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_TOKEN` (and the values from our AWS account).
+
+We can apply the configuration to make sure that, with the state now being in our Workspace in Terraform Cloud, there's no difference with how it was before with our local machine.
+
+```
+$ terraform apply
+Running apply in the remote backend. Output will stream here. Pressing Ctrl-C
+will cancel the remote apply if it's still pending. If the apply started it
+will stop streaming the logs, but will not stop the apply running remotely.
+
+Preparing the remote apply...
+
+To view this run in a browser, visit:
+https://app.terraform.io/app/plgingembre/tfc-aws-instance/runs/run-Bg6r4gPx3QBxobn8
+
+Waiting for the plan to start...
+
+Terraform v0.15.3
+on linux_amd64
+Configuring remote state backend...
+Initializing Terraform configuration...
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.app_server will be created
+  + resource "aws_instance" "app_server" {
+      + ami                                  = "ami-08d70e59c07c61a3a"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = (known after apply)
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags_all                             = (known after apply)
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + instance_id        = (known after apply)
+  + instance_public_ip = (known after apply)
+
+Do you want to perform these actions in workspace "tfc-aws-instance"?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.app_server: Still creating... [10s elapsed]
+aws_instance.app_server: Still creating... [20s elapsed]
+aws_instance.app_server: Creation complete after 24s [id=i-01e6d7fd0c8de5474]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+instance_id = "i-01e6d7fd0c8de5474"
+instance_public_ip = "34.213.39.10"
+```
+
+We can now destroy this instance to save some $$ with our AWS account. Just run a `terraform destory` command. 
+
+## Conclusion
+
+This concludes this first part on Terraform, extremely inspired by the official Terraform documentation, that is really well written in my opinion (very pragmatic approach of a doc). In future posts, I will focus more on specific examples to build an infrastructure for a given use case (Kubernetes, serverless functions, etc.).
+
+**_Sources:_**
+https://www.terraform.io/intro/index.html
+https://learn.hashicorp.com/tutorials/terraform/aws-remote?in=terraform/aws-get-started

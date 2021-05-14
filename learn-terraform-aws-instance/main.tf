@@ -1,4 +1,12 @@
 terraform {
+  backend "remote" {
+    organization = "plgingembre"
+
+    workspaces {
+      name = "tfc-aws-instance"
+    }
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -17,14 +25,4 @@ provider "aws" {
 resource "aws_instance" "app_server" {
   ami           = "ami-08d70e59c07c61a3a"
   instance_type = "t2.micro"
-}
-
-terraform {
-  backend "remote" {
-    organization = "plgingembre"
-
-    workspaces {
-      name = "tfc-aws-instance"
-    }
-  }
 }

@@ -29,14 +29,14 @@ When the first iteration of a configuration file is ready, it is time to initial
 
 To initialize terraform and read the main configuration file, use the following command:
 
-```bash
+```
 $ terraform init
 ```
 
 It will typically be the case that you require multiple iterations of your configuration file to achieve your desired infrastructure design. Running plans can help you quickly spot any error or get a good sense of what terraform is about to do based on what you wrote in your code.
 
 To check what terraform will do with your infrastructure based on your code/config, use the following command:
-```bash
+```
 $ terraform plan
 ```
 
@@ -46,7 +46,7 @@ $ terraform plan
 
 Once you feel your changes look good in your code, it's time to run your final plan and commit your changes to your local copy of your verion controlled repository.
 
-```bash
+```
 $ git add main.tf
 $ git commit -m "Creating a new infrastructure with code!"
 ```
@@ -55,7 +55,7 @@ Before applying those changes, a final review of the plan will be displayed and 
 
 To make the final review and provision the infrastructure, use the following command:
 
-```bash
+```
 $ terraform apply
 ```
 
@@ -65,7 +65,7 @@ After a last verification of the plan, Terraform will provision the real infrast
 
 Once the infrastructure is provisioned, it is a safe practice to push your version of the config to a remote version control repo.
 
-```bash
+```
 $ git remote add origin https://github.com/*user*/*repo*.git
 $ git push origin main
 ```
@@ -76,7 +76,7 @@ Nothing fundamentally changed, except that instead of working on the main branch
 
 To create a new branch and make changes to the main config, use the the following command:
 
-```bash
+```
 $ git checkout -b add-load-balancer
 ```
 
@@ -149,7 +149,7 @@ Resource blocks contain arguments which you use to configure the resource. Argum
 
 To get started with your terraform project, you need to initialize your project directory with the `terraform init` command. Initializing the directory downloads and installs the provider specified in the configuration.
 
-```bash
+```
 $ terraform init
 
 Initializing the backend...
@@ -177,7 +177,7 @@ commands will detect it and remind you to do so if necessary.
 
 Now, if you explore a little more what happens in this directory, you can see a new file `.terraform.lock.hcl` and a new directory `.terraform`.
 
-```bash
+```
 $ ll
 total 16
 drwxr-xr-x@ 5 plgingembre  staff   160B May 10 10:44 .
@@ -191,7 +191,7 @@ The lock file contains the version of the provider versions used in this configu
 
 Content of the `.terraform.lock.hcl` lock file:
 
-```bash
+```
 $ cat .terraform.lock.hcl
 # This file is maintained automatically by "terraform init".
 # Manual edits may be lost in future updates.
@@ -220,7 +220,7 @@ The `.terraform` directory is the place where providers will be downloaded and i
 
 Content of the `.terraform` directory and subdirectories:
 
-```bash
+```
 $ ls -lRah .terraform
 total 0
 drwxr-xr-x@ 3 plgingembre  staff    96B May 10 10:50 .
@@ -270,7 +270,7 @@ In case you're trying to create a configuration in AWS, terraform will download 
 
 If you're using SSO with an external IDP, you may run into the message below when running `terraform plan` command:
 
-```bash
+```
 $ terraform plan
 Acquiring state lock. This may take a few moments...
 ╷
@@ -306,7 +306,7 @@ Once aws-okta is configured correctly and you have verified that basic `aws` cli
 
 An example with `terraform plan`:
 
-```bash
+```
 $ aws-okta exec okta-demosales -- terraform plan
 Acquiring state lock. This may take a few moments...
 
@@ -429,13 +429,13 @@ One way to work around this constraint is to ignore these directories that conta
 
 Create a gitignore file:
 
-```bash
+```
 $ touch .gitignore
 ```
 
 Edit this file in your preferred text editor and add the following content:
 
-```bash
+```
 # Directories
 .terraform/
 
@@ -453,7 +453,7 @@ Once you have this `.gitignore` file in your local repo, you can stage your file
 
 An example of a terraform project with a `.gitignore` file, initialized:
 
-```bash
+```
 $ ll
 total 16
 drwxr-xr-x@ 5 plgingembre  staff   160B May 12 07:55 .
@@ -481,7 +481,7 @@ There are two useful commands to validate your configuration with terraform: `te
 
 `terraform fmt` makes sure the format of your configuration file is consistent and updates the config file in case it is not. 
 
-```bash
+```
 $ terraform fmt
 ```
 
@@ -493,7 +493,7 @@ At this point, the configuration was verified and you simulated the plan that te
 
 In the example below, an EC2 instance running Ubuntu is created:
 
-```bash
+```
 aws-okta exec okta-demosales -- terraform apply
 Acquiring state lock. This may take a few moments...
 
@@ -538,7 +538,7 @@ After a successful execution of the plan, you can now open your AWS console and 
 
 First, a quick way to find out which resource is tracked by Terraform is by using the `terraform state list` command. This command lists all resources that Terraform has created.
 
-```bash
+```
 $ terraform state list
 aws_instance.app_server
 ```
@@ -549,7 +549,7 @@ This file is the only way for Terraform to keep track of managed resources. Info
 
 An example with the EC2 instance you have created earlier:
 
-```bash
+```
 $ terraform show
 # aws_instance.app_server:
 resource "aws_instance" "app_server" {
@@ -686,7 +686,7 @@ resource "aws_instance" "app_server" {
 
 After saving `main.tf`, you can safely apply this new configuration with a `terraform apply`:
 
-```bash
+```
 $ terraform apply
 Acquiring state lock. This may take a few moments...
 aws_instance.app_server: Refreshing state... [id=i-012082c54447ff572]
@@ -825,7 +825,7 @@ Delete infrastructure with Terraform is as simple as one command: `terraform des
 
 An example using the EC2 instance:
 
-```bash
+```
 $ terraform destroy
 Acquiring state lock. This may take a few moments...
 aws_instance.app_server: Refreshing state... [id=i-093373c8461b7955f]
@@ -953,7 +953,7 @@ resource "aws_instance" "app_server" {
 ```
 Using `terraform apply` without specifying the variable will end up with the `default` value for the varibale, in this case `AppServerInstanceDefaultName`. To specify the value for a given variable, you need to use `-var 'variable_name=value'` with the `terraform apply` command.
 
-```bash
+```
 $ terraform apply -var 'instance_name=BlahServerName'
 aws_instance.app_server: Refreshing state... [id=i-04c96ab1acbb4317d]
 
@@ -1015,7 +1015,7 @@ output "instance_public_ip" {
 
 Running `terraform apply` will inspect the local directory for `.tf` files and will render outputs if there are `output` resources defined in one of these configuration files. `terraform apply` is mandatory for Terraform to acknowledge that outputs are requested after executing wrking on the infrastructure.
 
-```bash
+```
 $ terraform apply -var 'instance_name=BlahServerName'
 aws_instance.app_server: Refreshing state... [id=i-04c96ab1acbb4317d]
 
@@ -1046,7 +1046,7 @@ instance_public_ip = "54.184.118.153"
 
 You can see that the `Outputs` are displayed at the end of the output of the `terraform apply` command. A better way to display the outputs of a given Terraform project is to use the `terraform output` command.
 
-```bash
+```
 $ terraform output
 instance_id = "i-04c96ab1acbb4317d"
 instance_public_ip = "54.184.118.153"
@@ -1093,7 +1093,7 @@ terraform {
 
 After modifying the `main.tf` configuration, it's time to login to my Terraform Cloud account from the terminal, so that we can store variables or state in a workspace after the plan execution.
 
-```bash
+```
 $ terraform login
 Terraform will request an API token for app.terraform.io using your browser.
 
@@ -1161,7 +1161,7 @@ Retrieved token for user plgingembre
 
 We can initialize the configuration with the `terraform init` command. That will also initialize the backend and propose to copy existing local state to the remote backend. Not mandatory, but can be helpful to "migrate" en existing local project to Terraform Cloud.
 
-```bash
+```
 $ terraform init
 
 Initializing the backend...
@@ -1197,7 +1197,7 @@ When using Terraform Cloud as a remote backend with the CLI-driven workflow, we 
 
 After migrating the state file to the remote backend in a Terraform Cloud backend, we can safely delete the local state.
 
-```bash
+```
 $ rm terraform.state.*
 ```
 

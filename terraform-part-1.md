@@ -1,4 +1,4 @@
-# Terraform Get Started
+# Terraform, part 1 - Getting Started with Terraform
 
 ## Introduction
 

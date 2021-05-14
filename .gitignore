@@ -1,7 +1,7 @@
 # Compiled files - Can be synced in a non-Prod environment
-#*.tfstate
-#.tfstate.backup
-#*.tfstate.lock.info
+*.tfstate
+.tfstate.backup
+*.tfstate.lock.info
 
 # Logs
 *.log

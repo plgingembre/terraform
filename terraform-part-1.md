@@ -80,13 +80,16 @@ To create a new branch and make changes to the main config, use the the followin
 $ git checkout -b add-load-balancer
 ```
 
-## Language
+## Vocabulary
 
 Terraform has its own naming convention to describe the different components or actors to be used:
-* Configuration: a Terraform _configuration_ is the file (or set of files) that describes the infrastructure. Each configuration must be in its own directory
-* Provider: a Terraform _provider_ is **_- TO BE COMPLETED -_**
+* Configuration: a Terraform _configuration_ is the file (or set of files) that describes the infrastructure. Each configuration must be in its own directory. 
+* Provider: a Terraform _provider_ is **_- TO BE COMPLETED -_**.
+* Module: a Terraform _module_ is a set of Terraform configuration files in a single directory. Even a simple configuration consisting of a single directory with one or more .tf files is a module.
 
 ## Configuration
+
+> ***In the sections below, we will be using AWS as our infrastructure provider, so all examples will be using the aws provider in our configuration files***
 
 An example of a simple configuration file is shown below:
 
